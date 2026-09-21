@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Tiers Tracker</title>
+    <!-- Tesseract.js for Visiting Card OCR Scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --header-bg: #1e6091;
+            --warm: #f77f00;
+            --occ: #1d3557;
+            --least: #6c757d;
+            --text: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px;
+        }
+
+        /* Top Header */
+        .app-header {
+            background-color: var(--header-bg);
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .container { padding: 12px; }
+
+        /* Top Add Button */
+        .btn-add-main {
+            width: 100%;
+            padding: 12px;
+            background-color: #2b9348;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Tier Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        .metric-header {
+            color: white;
+            padding: 6px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .metric-header.warm { background-color: var(--warm); }
+        .metric-header.occ { background-color: var(--occ); }
+        .metric-header.least { background-color: var(--least); }
+        
+        .metric-body { padding: 8px 4px; }
+        .metric-val { font-size: 20px; font-weight: bold; color: #111; }
+        .metric-sub { font-size: 9px; color: #777; margin-top: 2px; }
+
+        /* Section Title */
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 10px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        /* Lead Cards */
+        .lead-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .card-thumb {
+            width: 65px;
+            height: 65px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #e9ecef;
+            flex-shrink: 0;
+        }
+        .card-details { flex-grow: 1; }
+        .card-title { font-size: 15px; font-weight: bold; margin: 0 0 3px 0; color: #222; }
+        .card-sub { font-size: 11px; color: #555; margin-bottom: 4px; }
+        .card-notes { font-size: 12px; color: #444; margin-bottom: 4px; background: #f8f9fa; padding: 4px 6px; border-radius: 4px; }
+        .card-date { font-size: 10px; color: #888; }
+        .card-reminder {
+            font-size: 11px;
+            font-weight: bold;
+            color: #f77f00;
+            margin-top: 4px;
+        }
+        .card-reminder.due { color: #d90429; }
+
+        /* Alarm banner */
+        #alarmBanner {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: #d90429;
+            color: #fff;
+            padding: 14px;
+            z-index: 2000;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        #alarmBannerText { font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+        #alarmBanner button {
+            background: #fff; color: #d90429; border: none;
+            padding: 6px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+
+        .card-actions { display: flex; flex-direction: column; gap: 5px; }
+        .action-btn {
+            text-decoration: none; font-size: 15px; padding: 5px 8px;
+            border-radius: 6px; background: #eef2f5; text-align: center;
+        }
+
+        /* Modals */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); overflow-y: auto; z-index: 1000;
+        }
+        .modal-content {
+            background: #fff; margin: 20px auto; padding: 18px;
+            border-radius: 12px; width: 90%; max-width: 450px;
+        }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #444; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 13px;
+        }
+
+        /* Bottom Nav */
+        .navbar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+            background: #fff; border-top: 1px solid #ddd;
+            display: flex; justify-content: space-around; align-items: center; z-index: 999;
+        }
+        .nav-item {
+            border: none; background: none; font-size: 11px; color: #555; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .nav-item span { font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div id="alarmBanner">
+        <div id="alarmBannerText"></div>
+        <button onclick="dismissAlarmBanner()">Dismiss</button>
+    </div>
+
+    <div class="app-header">Client Tiers</div>
+
+    <div class="container">
+        <!-- Main Top Add Button -->
+        <button class="btn-add-main" onclick="openModal('addModal')">➕ Add client</button>
+
+        <!-- Tier Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card" onclick="setFilter('Warm Leads')">
+                <div class="metric-header warm">Warm Leads</div>
+                <div class="metric-body">
+                    <div class="metric-val" id="cnt-warm">0</div>
+                    <div class="metric-sub">Mid-Tier Clients</div>
+                </div>
+            </div>
+            <div class="metric-card" onclick="setFilter('Occasional')">
+                <div class="metric-header occ">Occasional</div>
+                <div class="metric-body">
+                    <div class="metric-val" id="cnt-occ">0</div>
+                    <div class="metric-sub">Periodic Checks</div>
+                </div>
+            </div>
+            <div class="metric-card" onclick="setFilter('Least Potential')">
+                <div class="metric-header least">Least Potential</div>
+                <div class="metric-body">
+                    <div class="metric-val" id="cnt-least">0</div>
+                    <div class="metric-sub">Low Priority</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="searchBarWrap" style="display:none;margin-bottom:12px;">
+            <input type="text" id="searchInput" placeholder="🔍 Search by client, firm, city or project…" oninput="renderCards()" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;font-size:14px;">
+        </div>
+
+        <div class="section-title" id="viewTitle">Clients to follow up</div>
+
+        <!-- Directory Container -->
+        <div id="cardsList"></div>
+    </div>
+
+    <!-- Add Contact Modal (Auto OCR Scan + Manual Input/Edit) -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h3>Add / Scan Client</h3>
+            
+            <div class="form-group" style="background:#eef7ff; padding:10px; border-radius:8px;">
+                <label>📷 Scan Visiting Card (Auto-fills form)</label>
+                <input type="file" id="cardScanner" accept="image/*" onchange="scanCard(event)">
+                <small id="ocrStatus" style="color: #0066cc; font-weight:bold; display:block; margin-top:4px;"></small>
+            </div>
+
+            <form id="architectForm" onsubmit="saveClient(event)">
+                <div class="form-group">
+                    <label>Client Name*</label>
+                    <input type="text" id="clientName" placeholder="Type manually or auto-fill via card" required>
+                </div>
+                <div class="form-group">
+                    <label>Firm / Company Name</label>
+                    <input type="text" id="firmName" placeholder="e.g. Studio XYZ Architects">
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="city" value="Mumbai">
+                </div>
+                <div class="form-group">
+                    <label>Project Type / Specialization</label>
+                    <input type="text" id="specialization" placeholder="e.g. Swimming Pool / Villa Renovation">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phone" placeholder="Phone number">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="Email address">
+                </div>
+                <div class="form-group">
+                    <label>Tier Category</label>
+                    <select id="potential">
+                        <option value="Warm Leads" selected>Warm Leads</option>
+                        <option value="Occasional">Occasional</option>
+                        <option value="Least Potential">Least Potential</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Follow-up Notes</label>
+                    <textarea id="notes" rows="2" placeholder="Enter follow-up details..."></textarea>
+                </div>
+                <div class="form-group" style="background:#fff6ea; padding:10px; border-radius:8px;">
+                    <label>⏰ Reminder (optional)</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="date" id="newRemDate" style="flex:1;">
+                        <input type="time" id="newRemTime" value="09:00" style="flex:1;">
+                    </div>
+                    <input type="text" id="newRemNote" placeholder="e.g. Follow up about the quote" style="margin-top:6px;">
+                </div>
+                <input type="hidden" id="cardImgData">
+                <button type="submit" style="width:100%; padding:10px; background:#2b9348; color:#fff; border:none; border-radius:6px; font-weight:bold;">Save Client</button>
+                <button type="button" onclick="closeModal('addModal')" style="width:100%; padding:8px; margin-top:6px; background:#ccc; border:none; border-radius:6px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reminder Modal -->
+    <div id="reminderModal" class="modal">
+        <div class="modal-content">
+            <h3>⏰ Set Reminder</h3>
+            <p id="reminderForName" style="font-size:13px; color:#666;"></p>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="remDate">
+            </div>
+            <div class="form-group">
+                <label>Time</label>
+                <input type="time" id="remTime" value="09:00">
+            </div>
+            <div class="form-group">
+                <label>Note</label>
+                <input type="text" id="remNote" placeholder="e.g. Follow up about the quote">
+            </div>
+            <button type="button" onclick="saveReminder()" style="width:100%; padding:10px; background:#2b9348; color:#fff; border:none; border-radius:6px; font-weight:bold;">Save Reminder</button>
+            <button type="button" onclick="clearReminder()" style="width:100%; padding:8px; margin-top:6px; background:#d90429; color:#fff; border:none; border-radius:6px;">Clear Reminder</button>
+            <button type="button" onclick="closeModal('reminderModal')" style="width:100%; padding:8px; margin-top:6px; background:#ccc; border:none; border-radius:6px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Settings & Google Drive Backup Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ Settings & Backup</h3>
+            <p style="font-size: 12px; color: #666;">Export your secondary leads database to Google Drive or restore an existing backup file.</p>
+
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
+                <label>🔔 Reminder Alarms</label>
+                <button onclick="requestNotifyPermission(true)" style="width:100%; padding:10px; background:#f77f00; color:#fff; border:none; border-radius:6px; font-weight:bold;">Enable Alarm Notifications</button>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
+                <label>☁️ Export Backup File</label>
+                <button onclick="backupToDrive()" style="width:100%; padding:10px; background:#007bff; color:#fff; border:none; border-radius:6px; font-weight:bold;">Download JSON Backup</button>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
+                <label>📥 Restore Backup (.json file)</label>
+                <input type="file" id="jsonImporter" accept=".json" onchange="restoreFromDrive(event)">
+            </div>
+
+            <button type="button" onclick="closeModal('settingsModal')" style="width:100%; padding:8px; margin-top:15px; background:#ccc; border:none; border-radius:6px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="navbar">
+        <button class="nav-item" onclick="goBack()"><span>⬅️</span>Back</button>
+        <button class="nav-item" onclick="setFilter('All')"><span>👥</span>Clients</button>
+        <button class="nav-item" onclick="toggleSearch()"><span>🔍</span>Search</button>
+        <button class="nav-item" onclick="openModal('settingsModal')"><span>⚙️</span>Settings</button>
+    </div>
+
+    <script>
+        let clients = JSON.parse(localStorage.getItem('tier_clients') || '[]');
+        let currentFilter = 'All';
+        let searchMode = false;
+
+        function sortClientsByName() {
+            clients.sort((a, b) => {
+                const an = (a.clientName || a.name || '').toLowerCase();
+                const bn = (b.clientName || b.name || '').toLowerCase();
+                return an.localeCompare(bn, undefined, { sensitivity: 'base', numeric: true });
+            });
+        }
+        sortClientsByName();
+
+        function updateMetrics() {
+            document.getElementById('cnt-warm').innerText = clients.filter(c => c.potential === 'Warm Leads').length;
+            document.getElementById('cnt-occ').innerText = clients.filter(c => c.potential === 'Occasional').length;
+            document.getElementById('cnt-least').innerText = clients.filter(c => c.potential === 'Least Potential').length;
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.getElementById('viewTitle').innerText = filter === 'All' ? 'Clients to follow up' : `${filter} List`;
+            renderCards();
+        }
+
+        function renderCards() {
+            updateMetrics();
+            const list = document.getElementById('cardsList');
+            list.innerHTML = '';
+
+            const searchVal = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+
+            const filtered = clients.filter(c => {
+                const matchesFilter = currentFilter === 'All' || c.potential === currentFilter;
+                if (!matchesFilter) return false;
+                if (!searchVal) return true;
+                const clientName = (c.clientName || c.name || '').toLowerCase();
+                const firmName = (c.firmName || '').toLowerCase();
+                return clientName.includes(searchVal) || firmName.includes(searchVal) ||
+                       (c.city || '').toLowerCase().includes(searchVal) ||
+                       (c.specialization || '').toLowerCase().includes(searchVal);
+            });
+
+            // Sort alphabetically by client name first (falls back to firm name only if no client name)
+            filtered.sort((a, b) => {
+                const an = (a.clientName || a.name || '').toLowerCase();
+                const bn = (b.clientName || b.name || '').toLowerCase();
+                return an.localeCompare(bn, undefined, { sensitivity: 'base', numeric: true });
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#888; margin:40px 0;">No clients in this view.</p>';
+                return;
+            }
+
+            filtered.forEach(c => {
+                const img = c.cardImg || 'https://via.placeholder.com/65?text=Card';
+                const cleanPhone = (c.phone || '').replace(/\D/g, '');
+                const clientName = c.clientName || c.name || 'Unnamed';
+                const firmName = c.firmName ? `${c.firmName} · ` : '';
+                const reminderHtml = reminderBadge(c);
+
+                list.innerHTML += `
+                    <div class="lead-card">
+                        <img src="${img}" class="card-thumb">
+                        <div class="card-details">
+                            <div class="card-title">${clientName}</div>
+                            <div class="card-sub">${firmName}📍 ${c.city} | ${c.specialization || 'General Project'}</div>
+                            <div class="card-notes">${c.notes || 'No follow-up notes.'}</div>
+                            <div class="card-date">Last contact: ${c.date}</div>
+                            ${reminderHtml}
+                        </div>
+                        <div class="card-actions">
+                            ${cleanPhone ? `<a href="tel:${cleanPhone}" class="action-btn">📞</a>` : ''}
+                            ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" class="action-btn">💬</a>` : ''}
+                            ${c.email ? `<a href="mailto:${c.email}" class="action-btn">✉️</a>` : ''}
+                            <button class="action-btn" style="border:none; cursor:pointer;" onclick="openReminderModal(${c.id})">⏰</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function reminderBadge(c) {
+            if (!c.reminder) return '';
+            const due = !c.reminder.fired && reminderTime(c.reminder) <= Date.now();
+            return `<div class="card-reminder${due ? ' due' : ''}">⏰ ${due ? 'Reminder due' : 'Reminder: ' + fmtReminder(c.reminder)}</div>`;
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'block'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function toggleSearch() {
+            searchMode = true;
+            document.getElementById('searchBarWrap').style.display = 'block';
+            const inp = document.getElementById('searchInput');
+            inp.focus();
+        }
+
+        function goBack() {
+            const openIds = ['addModal', 'reminderModal', 'settingsModal'];
+            const openId = openIds.find(id => document.getElementById(id).style.display === 'block');
+            if (openId) { closeModal(openId); return; }
+            if (searchMode) {
+                searchMode = false;
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchBarWrap').style.display = 'none';
+                renderCards();
+                return;
+            }
+            if (currentFilter !== 'All') { setFilter('All'); return; }
+            window.history.back();
+        }
+
+        // OCR Scanning & Auto-fill
+        async function scanCard(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) { document.getElementById('cardImgData').value = e.target.result; };
+            reader.readAsDataURL(file);
+
+            const status = document.getElementById('ocrStatus');
+            status.innerText = '⏳ Scanning card text...';
+            
+            try {
+                const ret = await Tesseract.recognize(file, 'eng');
+                const text = ret.data.text;
+                
+                const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                const phoneMatch = text.match(/(\+?\d[\d\s-]{8,}\d)/);
+                const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+                
+                if (textLines.length > 0) document.getElementById('clientName').value = textLines[0];
+                if (emailMatch) document.getElementById('email').value = emailMatch[0];
+                if (phoneMatch) document.getElementById('phone').value = phoneMatch[0].replace(/\s+/g, '');
+                
+                status.innerText = '✅ Card scanned! Verify or edit details below.';
+            } catch (err) {
+                status.innerText = '⚠️ Auto-fill failed. Enter details manually below.';
+            }
+        }
+
+        function saveClient(e) {
+            e.preventDefault();
+            const newEntry = {
+                id: Date.now(),
+                clientName: document.getElementById('clientName').value.trim(),
+                firmName: document.getElementById('firmName').value.trim(),
+                city: document.getElementById('city').value,
+                specialization: document.getElementById('specialization').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                potential: document.getElementById('potential').value,
+                notes: document.getElementById('notes').value,
+                cardImg: document.getElementById('cardImgData').value,
+                reminder: buildReminder(
+                    document.getElementById('newRemDate').value,
+                    document.getElementById('newRemTime').value,
+                    document.getElementById('newRemNote').value.trim()
+                ),
+                date: new Date().toLocaleDateString()
+            };
+
+            clients.unshift(newEntry);
+            sortClientsByName();
+            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            closeModal('addModal');
+            renderCards();
+            document.getElementById('architectForm').reset();
+            document.getElementById('ocrStatus').innerText = '';
+        }
+
+        function backupToDrive() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clients, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `client_tiers_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            alert("Backup JSON file downloaded! Save this file directly into your Google Drive.");
+        }
+
+        function restoreFromDrive(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        clients = imported;
+                        sortClientsByName();
+                        localStorage.setItem('tier_clients', JSON.stringify(clients));
+                        renderCards();
+                        alert("Database restored successfully!");
+                        closeModal('settingsModal');
+                    }
+                } catch (err) {
+                    alert("Error restoring backup file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* ============ Reminders / Alarms ============ */
+        function buildReminder(date, time, note) {
+            if (!date) return null;
+            return { date, time: time || '09:00', note: note || '', fired: false };
+        }
+        function reminderTime(r) {
+            return new Date(`${r.date}T${r.time || '09:00'}:00`).getTime();
+        }
+        function fmtReminder(r) {
+            const d = new Date(`${r.date}T${r.time || '09:00'}:00`);
+            return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }) +
+                ' at ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+        }
+
+        let activeReminderId = null;
+        function openReminderModal(id) {
+            activeReminderId = id;
+            const c = clients.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('reminderForName').innerText = 'For: ' + (c.clientName || c.name || 'Unnamed');
+            document.getElementById('remDate').value = c.reminder ? c.reminder.date : '';
+            document.getElementById('remTime').value = c.reminder ? c.reminder.time : '09:00';
+            document.getElementById('remNote').value = c.reminder ? c.reminder.note : '';
+            openModal('reminderModal');
+        }
+        function saveReminder() {
+            const c = clients.find(x => x.id === activeReminderId);
+            if (!c) return;
+            const date = document.getElementById('remDate').value;
+            if (!date) { alert('Pick a date for the reminder first.'); return; }
+            c.reminder = buildReminder(date, document.getElementById('remTime').value, document.getElementById('remNote').value.trim());
+            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            closeModal('reminderModal');
+            renderCards();
+            requestNotifyPermission(false);
+        }
+        function clearReminder() {
+            const c = clients.find(x => x.id === activeReminderId);
+            if (!c) return;
+            c.reminder = null;
+            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            closeModal('reminderModal');
+            renderCards();
+        }
+
+        async function requestNotifyPermission(announce) {
+            if (typeof Notification === 'undefined') {
+                if (announce) alert("This browser can't show notifications, but in-app alarms will still work while this tab is open.");
+                return 'unsupported';
+            }
+            let perm = Notification.permission;
+            if (perm === 'default') {
+                try { perm = await Notification.requestPermission(); } catch (e) { /* ignore */ }
+            }
+            if (announce) {
+                if (perm === 'granted') alert('Alarm notifications enabled!');
+                else alert('Notifications are blocked — in-app alarms will still show while this tab is open.');
+            }
+            return perm;
+        }
+
+        function playAlarmSound() {
+            try {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new Ctx();
+                const beep = (start) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 880;
+                    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+                    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + start + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + 0.3);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + start);
+                    osc.stop(ctx.currentTime + start + 0.32);
+                };
+                [0, 0.4, 0.8].forEach(beep);
+            } catch (e) { /* audio unavailable, skip silently */ }
+        }
+
+        function showAlarmBanner(dueClients) {
+            const text = dueClients.map(c => `${c.clientName || c.name}: ${(c.reminder && c.reminder.note) || 'Reminder due'}`).join(' • ');
+            document.getElementById('alarmBannerText').innerText = text;
+            document.getElementById('alarmBanner').style.display = 'block';
+        }
+        function dismissAlarmBanner() {
+            document.getElementById('alarmBanner').style.display = 'none';
+        }
+
+        function checkReminders() {
+            const now = Date.now();
+            const due = [];
+            let changed = false;
+            clients.forEach(c => {
+                if (c.reminder && !c.reminder.fired && reminderTime(c.reminder) <= now) {
+                    c.reminder.fired = true;
+                    changed = true;
+                    due.push(c);
+                }
+            });
+            if (due.length) {
+                playAlarmSound();
+                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                    due.forEach(c => {
+                        try {
+                            new Notification('Reminder: ' + (c.clientName || c.name), {
+                                body: (c.reminder && c.reminder.note) || 'Time to follow up',
+                                tag: 'tier-reminder-' + c.id
+                            });
+                        } catch (e) { /* some browsers restrict this, banner still shows */ }
+                    });
+                }
+                showAlarmBanner(due);
+            }
+            if (changed) {
+                localStorage.setItem('tier_clients', JSON.stringify(clients));
+                renderCards();
+            }
+        }
+        setInterval(checkReminders, 20000);
+
+        renderCards();
+        checkReminders();
+    </script>
+</body>
+</html>
