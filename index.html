@@ -126,10 +126,6 @@
             font-weight: bold;
             margin: 0 0 3px 0;
             color: #222;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
         }
         .card-sub { font-size: 11px; color: #555; margin-bottom: 4px; }
         .card-notes {
@@ -149,16 +145,6 @@
             margin-top: 4px;
         }
         .card-reminder.due { color: #d90429; }
-
-        .inline-delete {
-            background: none;
-            border: none;
-            font-size: 15px;
-            cursor: pointer;
-            color: #b00020;
-            padding: 0 2px;
-            line-height: 1;
-        }
 
         /* Horizontal action row */
         .card-actions-row {
@@ -386,6 +372,7 @@
                 <input type="hidden" id="cardImgData">
 
                 <button type="submit" id="saveBtn" style="width:100%; padding:10px; background:#2b9348; color:#fff; border:none; border-radius:6px; font-weight:bold;">Save Client</button>
+                <button type="button" id="modalDeleteBtn" onclick="deleteFromModal()" style="display:none; width:100%; padding:10px; margin-top:6px; background:#d90429; color:#fff; border:none; border-radius:6px; font-weight:bold;">🗑️ Delete Client</button>
                 <button type="button" onclick="closeModal('addModal')" style="width:100%; padding:8px; margin-top:6px; background:#ccc; border:none; border-radius:6px;">Cancel</button>
             </form>
         </div>
@@ -529,10 +516,7 @@
                     <div class="lead-card" data-id="${c.id}">
                         <img src="${img}" class="card-thumb" alt="card">
                         <div class="card-details">
-                            <div class="card-title">
-                                ${clientName}
-                                <button class="inline-delete" onclick="deleteClient(${c.id})" title="Delete client">🗑️</button>
-                            </div>
+                            <div class="card-title">${clientName}</div>
                             <div class="card-sub">${firmPart}📍 ${escapeHtml(c.city || '')} | ${escapeHtml(c.specialization || 'General Project')}</div>
                             <div class="card-notes">${escapeHtml(c.notes || 'No follow-up notes.')}</div>
                             <div class="card-date">Last contact: ${escapeHtml(c.date || '')}</div>
@@ -569,6 +553,7 @@
             document.getElementById('ocrStatus').innerText = '';
             document.getElementById('city').value = 'Mumbai';
             document.getElementById('newRemTime').value = '09:00';
+            document.getElementById('modalDeleteBtn').style.display = 'none';
             openModal('addModal');
         }
 
@@ -596,6 +581,7 @@
                 document.getElementById('newRemNote').value = '';
             }
             document.getElementById('ocrStatus').innerText = '';
+            document.getElementById('modalDeleteBtn').style.display = 'block';
             openModal('addModal');
         }
 
@@ -609,6 +595,19 @@
                 String(document.getElementById('editId').value) === String(id)) {
                 closeModal('addModal');
             }
+        }
+
+        function deleteFromModal() {
+            const editId = document.getElementById('editId').value;
+            if (!editId) return;
+            if (!confirm('Delete this client permanently?')) return;
+            clients = clients.filter(c => String(c.id) !== String(editId));
+            sortClientsByName();
+            saveToStorage();
+            renderCards();
+            closeModal('addModal');
+            document.getElementById('editId').value = '';
+            document.getElementById('architectForm').reset();
         }
 
         function toggleSearch() {
@@ -710,6 +709,7 @@
             document.getElementById('architectForm').reset();
             document.getElementById('ocrStatus').innerText = '';
             document.getElementById('editId').value = '';
+            document.getElementById('modalDeleteBtn').style.display = 'none';
         }
 
         /* ---------- Backup / Restore ---------- */
