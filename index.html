@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Client Tiers Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <style>
         :root {
             --bg: #f4f6f9;
@@ -15,6 +16,8 @@
             --least: #6c757d;
             --text: #333333;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -78,7 +81,7 @@
         .metric-header.warm { background-color: var(--warm); }
         .metric-header.occ { background-color: var(--occ); }
         .metric-header.least { background-color: var(--least); }
-        
+
         .metric-body { padding: 8px 4px; }
         .metric-val { font-size: 20px; font-weight: bold; color: #111; }
         .metric-sub { font-size: 9px; color: #777; margin-top: 2px; }
@@ -94,7 +97,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
-        /* Lead Cards — updated for edit/delete and horizontal actions */
+        /* Lead cards */
         .lead-card {
             background: var(--card-bg);
             border-radius: 10px;
@@ -105,7 +108,6 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: flex-start;
-            position: relative;
         }
         .card-thumb {
             width: 65px;
@@ -119,9 +121,26 @@
             flex: 1 1 150px;
             min-width: 0;
         }
-        .card-title { font-size: 15px; font-weight: bold; margin: 0 0 3px 0; color: #222; }
+        .card-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            color: #222;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
         .card-sub { font-size: 11px; color: #555; margin-bottom: 4px; }
-        .card-notes { font-size: 12px; color: #444; margin-bottom: 4px; background: #f8f9fa; padding: 4px 6px; border-radius: 4px; word-break: break-word; }
+        .card-notes {
+            font-size: 12px;
+            color: #444;
+            margin-bottom: 4px;
+            background: #f8f9fa;
+            padding: 4px 6px;
+            border-radius: 4px;
+            word-break: break-word;
+        }
         .card-date { font-size: 10px; color: #888; }
         .card-reminder {
             font-size: 11px;
@@ -131,7 +150,17 @@
         }
         .card-reminder.due { color: #d90429; }
 
-        /* horizontal action row */
+        .inline-delete {
+            background: none;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            color: #b00020;
+            padding: 0 2px;
+            line-height: 1;
+        }
+
+        /* Horizontal action row */
         .card-actions-row {
             display: flex;
             flex-wrap: wrap;
@@ -145,7 +174,7 @@
         .action-btn {
             text-decoration: none;
             font-size: 18px;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             background: #eef2f5;
             text-align: center;
@@ -162,16 +191,7 @@
         .action-btn.delete-btn { background: #ffe5e5; color: #b00020; }
         .action-btn.delete-btn:hover { background: #ffcccc; }
 
-        /* small delete icon inside card details (optional) */
-        .inline-delete {
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            color: #b00020;
-            padding: 0 4px;
-        }
-
+        /* Alarm banner */
         #alarmBanner {
             display: none;
             position: fixed;
@@ -196,15 +216,23 @@
         }
         .modal-content {
             background: #fff; margin: 20px auto; padding: 18px;
-            border-radius: 12px; width: 90%; max-width: 450px;
+            border-radius: 12px; width: 92%; max-width: 450px;
         }
+        .modal-content h3 { margin-top: 0; }
+
         .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #444; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 13px;
+        .form-group label {
+            display: block; font-size: 12px; font-weight: bold;
+            margin-bottom: 4px; color: #444;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 8px; border: 1px solid #ccc;
+            border-radius: 6px; box-sizing: border-box; font-size: 13px;
         }
 
-        /* camera capture row */
+        /* Camera capture buttons */
         .capture-row {
             display: flex;
             gap: 8px;
@@ -228,6 +256,7 @@
         .capture-row label:hover { background: #e9f7ef; }
         .capture-row input[type="file"] { display: none; }
 
+        /* Bottom nav */
         .navbar {
             position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
             background: #fff; border-top: 1px solid #ddd;
@@ -239,12 +268,10 @@
         }
         .nav-item span { font-size: 18px; }
 
-        /* responsive tweaks */
         @media (max-width: 400px) {
-            .lead-card { flex-direction: row; flex-wrap: wrap; }
             .card-thumb { width: 55px; height: 55px; }
             .card-actions-row { gap: 6px; }
-            .action-btn { font-size: 16px; padding: 5px 8px; }
+            .action-btn { font-size: 16px; padding: 5px 9px; }
         }
     </style>
 </head>
@@ -295,7 +322,7 @@
     <div id="addModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle">Add / Scan Client</h3>
-            
+
             <div class="form-group" style="background:#eef7ff; padding:10px; border-radius:8px;">
                 <label>📷 Scan Visiting Card (Auto-fills form)</label>
                 <div class="capture-row">
@@ -304,11 +331,12 @@
                     <label for="fileInput">🖼️ Choose File</label>
                     <input type="file" id="fileInput" accept="image/*" onchange="scanCard(event)">
                 </div>
-                <small id="ocrStatus" style="color: #0066cc; font-weight:bold; display:block; margin-top:6px;"></small>
+                <small id="ocrStatus" style="color:#0066cc; font-weight:bold; display:block; margin-top:6px;"></small>
             </div>
 
             <form id="architectForm" onsubmit="saveClient(event)">
                 <input type="hidden" id="editId" value="">
+
                 <div class="form-group">
                     <label>Client Name*</label>
                     <input type="text" id="clientName" placeholder="Type manually or auto-fill via card" required>
@@ -345,6 +373,7 @@
                     <label>Follow-up Notes</label>
                     <textarea id="notes" rows="2" placeholder="Enter follow-up details..."></textarea>
                 </div>
+
                 <div class="form-group" style="background:#fff6ea; padding:10px; border-radius:8px;">
                     <label>⏰ Reminder (optional)</label>
                     <div style="display:flex; gap:6px;">
@@ -353,7 +382,9 @@
                     </div>
                     <input type="text" id="newRemNote" placeholder="e.g. Follow up about the quote" style="margin-top:6px;">
                 </div>
+
                 <input type="hidden" id="cardImgData">
+
                 <button type="submit" id="saveBtn" style="width:100%; padding:10px; background:#2b9348; color:#fff; border:none; border-radius:6px; font-weight:bold;">Save Client</button>
                 <button type="button" onclick="closeModal('addModal')" style="width:100%; padding:8px; margin-top:6px; background:#ccc; border:none; border-radius:6px;">Cancel</button>
             </form>
@@ -387,7 +418,7 @@
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <h3>⚙️ Settings & Backup</h3>
-            <p style="font-size: 12px; color: #666;">Export your secondary leads database to Google Drive or restore an existing backup file.</p>
+            <p style="font-size: 12px; color: #666;">Export your leads database to Google Drive or restore an existing backup file.</p>
 
             <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
                 <label>🔔 Reminder Alarms</label>
@@ -415,11 +446,18 @@
         <button class="nav-item" onclick="toggleSearch()"><span>🔍</span>Search</button>
         <button class="nav-item" onclick="openModal('settingsModal')"><span>⚙️</span>Settings</button>
     </div>
-
     <script>
         let clients = JSON.parse(localStorage.getItem('tier_clients') || '[]');
         let currentFilter = 'All';
         let searchMode = false;
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem('tier_clients', JSON.stringify(clients));
+            } catch (e) {
+                alert('Could not save data. Your browser storage may be full or blocked.');
+            }
+        }
 
         function sortClientsByName() {
             clients.sort((a, b) => {
@@ -441,6 +479,15 @@
             renderCards();
         }
 
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function renderCards() {
             updateMetrics();
             const list = document.getElementById('cardsList');
@@ -454,7 +501,8 @@
                 if (!searchVal) return true;
                 const clientName = (c.clientName || c.name || '').toLowerCase();
                 const firmName = (c.firmName || '').toLowerCase();
-                return clientName.includes(searchVal) || firmName.includes(searchVal) ||
+                return clientName.includes(searchVal) ||
+                       firmName.includes(searchVal) ||
                        (c.city || '').toLowerCase().includes(searchVal) ||
                        (c.specialization || '').toLowerCase().includes(searchVal);
             });
@@ -473,26 +521,27 @@
             filtered.forEach(c => {
                 const img = c.cardImg || 'https://via.placeholder.com/65?text=Card';
                 const cleanPhone = (c.phone || '').replace(/\D/g, '');
-                const clientName = c.clientName || c.name || 'Unnamed';
-                const firmName = c.firmName ? `${c.firmName} · ` : '';
+                const clientName = escapeHtml(c.clientName || c.name || 'Unnamed');
+                const firmPart = c.firmName ? escapeHtml(c.firmName) + ' · ' : '';
                 const reminderHtml = reminderBadge(c);
 
                 list.innerHTML += `
                     <div class="lead-card" data-id="${c.id}">
                         <img src="${img}" class="card-thumb" alt="card">
                         <div class="card-details">
-                            <div class="card-title">${clientName}
+                            <div class="card-title">
+                                ${clientName}
                                 <button class="inline-delete" onclick="deleteClient(${c.id})" title="Delete client">🗑️</button>
                             </div>
-                            <div class="card-sub">${firmName}📍 ${c.city || ''} | ${c.specialization || 'General Project'}</div>
-                            <div class="card-notes">${c.notes || 'No follow-up notes.'}</div>
-                            <div class="card-date">Last contact: ${c.date || ''}</div>
+                            <div class="card-sub">${firmPart}📍 ${escapeHtml(c.city || '')} | ${escapeHtml(c.specialization || 'General Project')}</div>
+                            <div class="card-notes">${escapeHtml(c.notes || 'No follow-up notes.')}</div>
+                            <div class="card-date">Last contact: ${escapeHtml(c.date || '')}</div>
                             ${reminderHtml}
                         </div>
                         <div class="card-actions-row">
                             ${cleanPhone ? `<a href="tel:${cleanPhone}" class="action-btn" title="Call">📞</a>` : ''}
-                            ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" class="action-btn" title="WhatsApp" target="_blank">💬</a>` : ''}
-                            ${c.email ? `<a href="mailto:${c.email}" class="action-btn" title="Email">✉️</a>` : ''}
+                            ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" class="action-btn" title="WhatsApp" target="_blank" rel="noopener">💬</a>` : ''}
+                            ${c.email ? `<a href="mailto:${escapeHtml(c.email)}" class="action-btn" title="Email">✉️</a>` : ''}
                             <button class="action-btn" onclick="openReminderModal(${c.id})" title="Set reminder">⏰</button>
                             <button class="action-btn" onclick="editClient(${c.id})" title="Edit">✏️</button>
                             <button class="action-btn delete-btn" onclick="deleteClient(${c.id})" title="Delete">🗑️</button>
@@ -511,7 +560,7 @@
         function openModal(id) { document.getElementById(id).style.display = 'block'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // --- ADD / EDIT ---
+        /* ---------- ADD / EDIT ---------- */
         function openAddModal() {
             document.getElementById('modalTitle').innerText = 'Add / Scan Client';
             document.getElementById('editId').value = '';
@@ -537,7 +586,6 @@
             document.getElementById('potential').value = c.potential || 'Warm Leads';
             document.getElementById('notes').value = c.notes || '';
             document.getElementById('cardImgData').value = c.cardImg || '';
-            // reminder
             if (c.reminder) {
                 document.getElementById('newRemDate').value = c.reminder.date || '';
                 document.getElementById('newRemTime').value = c.reminder.time || '09:00';
@@ -551,15 +599,14 @@
             openModal('addModal');
         }
 
-        // --- DELETE ---
         function deleteClient(id) {
             if (!confirm('Delete this client permanently?')) return;
             clients = clients.filter(c => c.id !== id);
             sortClientsByName();
-            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            saveToStorage();
             renderCards();
-            // close modal if open for same client
-            if (document.getElementById('addModal').style.display === 'block' && document.getElementById('editId').value == id) {
+            if (document.getElementById('addModal').style.display === 'block' &&
+                String(document.getElementById('editId').value) === String(id)) {
                 closeModal('addModal');
             }
         }
@@ -585,7 +632,7 @@
             window.history.back();
         }
 
-        // --- OCR ---
+        /* ---------- OCR ---------- */
         async function scanCard(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -596,24 +643,29 @@
 
             const status = document.getElementById('ocrStatus');
             status.innerText = '⏳ Scanning card text...';
-            
+
             try {
                 const ret = await Tesseract.recognize(file, 'eng');
                 const text = ret.data.text;
-                
+
                 const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
                 const phoneMatch = text.match(/(\+?\d[\d\s-]{8,}\d)/);
                 const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-                
-                if (textLines.length > 0) document.getElementById('clientName').value = textLines[0];
-                if (emailMatch) document.getElementById('email').value = emailMatch[0];
-                if (phoneMatch) document.getElementById('phone').value = phoneMatch[0].replace(/\s+/g, '');
-                
+
+                if (textLines.length > 0 && !document.getElementById('clientName').value) {
+                    document.getElementById('clientName').value = textLines[0];
+                }
+                if (emailMatch && !document.getElementById('email').value) {
+                    document.getElementById('email').value = emailMatch[0];
+                }
+                if (phoneMatch && !document.getElementById('phone').value) {
+                    document.getElementById('phone').value = phoneMatch[0].replace(/\s+/g, '');
+                }
+
                 status.innerText = '✅ Card scanned! Verify or edit details below.';
             } catch (err) {
                 status.innerText = '⚠️ Auto-fill failed. Enter details manually below.';
             } finally {
-                // reset the input to allow re-upload / re-capture
                 event.target.value = '';
             }
         }
@@ -635,27 +687,24 @@
                     document.getElementById('newRemDate').value,
                     document.getElementById('newRemTime').value,
                     document.getElementById('newRemNote').value.trim()
-                ),
+                )
             };
 
             if (editId) {
-                // update existing
-                const idx = clients.findIndex(c => c.id == editId);
+                const idx = clients.findIndex(c => String(c.id) === String(editId));
                 if (idx !== -1) {
                     clients[idx] = { ...clients[idx], ...clientData };
                 }
             } else {
-                // create new
-                const newEntry = {
+                clients.unshift({
                     id: Date.now(),
                     ...clientData,
                     date: new Date().toLocaleDateString()
-                };
-                clients.unshift(newEntry);
+                });
             }
 
             sortClientsByName();
-            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            saveToStorage();
             closeModal('addModal');
             renderCards();
             document.getElementById('architectForm').reset();
@@ -663,6 +712,7 @@
             document.getElementById('editId').value = '';
         }
 
+        /* ---------- Backup / Restore ---------- */
         function backupToDrive() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clients, null, 2));
             const dlAnchor = document.createElement('a');
@@ -671,7 +721,6 @@
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
-            alert("Backup JSON file downloaded! Save this file directly into your Google Drive.");
         }
 
         function restoreFromDrive(event) {
@@ -685,10 +734,12 @@
                     if (Array.isArray(imported)) {
                         clients = imported;
                         sortClientsByName();
-                        localStorage.setItem('tier_clients', JSON.stringify(clients));
+                        saveToStorage();
                         renderCards();
                         alert("Database restored successfully!");
                         closeModal('settingsModal');
+                    } else {
+                        alert("Backup file format not recognized.");
                     }
                 } catch (err) {
                     alert("Error restoring backup file.");
@@ -698,7 +749,7 @@
             event.target.value = '';
         }
 
-        /* ============ Reminders ============ */
+        /* ---------- Reminders ---------- */
         function buildReminder(date, time, note) {
             if (!date) return null;
             return { date, time: time || '09:00', note: note || '', fired: false };
@@ -723,22 +774,24 @@
             document.getElementById('remNote').value = c.reminder ? c.reminder.note : '';
             openModal('reminderModal');
         }
+
         function saveReminder() {
             const c = clients.find(x => x.id === activeReminderId);
             if (!c) return;
             const date = document.getElementById('remDate').value;
             if (!date) { alert('Pick a date for the reminder first.'); return; }
             c.reminder = buildReminder(date, document.getElementById('remTime').value, document.getElementById('remNote').value.trim());
-            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            saveToStorage();
             closeModal('reminderModal');
             renderCards();
             requestNotifyPermission(false);
         }
+
         function clearReminder() {
             const c = clients.find(x => x.id === activeReminderId);
             if (!c) return;
             c.reminder = null;
-            localStorage.setItem('tier_clients', JSON.stringify(clients));
+            saveToStorage();
             closeModal('reminderModal');
             renderCards();
         }
@@ -772,4 +825,59 @@
                     gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + start + 0.02);
                     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + 0.3);
                     osc.connect(gain); gain.connect(ctx.destination);
-                    osc
+                    osc.start(ctx.currentTime + start);
+                    osc.stop(ctx.currentTime + start + 0.32);
+                };
+                [0, 0.4, 0.8].forEach(beep);
+            } catch (e) { /* audio unavailable, skip silently */ }
+        }
+
+        function showAlarmBanner(dueClients) {
+            const text = dueClients.map(c =>
+                `${c.clientName || c.name}: ${(c.reminder && c.reminder.note) || 'Reminder due'}`
+            ).join(' • ');
+            document.getElementById('alarmBannerText').innerText = text;
+            document.getElementById('alarmBanner').style.display = 'block';
+        }
+
+        function dismissAlarmBanner() {
+            document.getElementById('alarmBanner').style.display = 'none';
+        }
+
+        function checkReminders() {
+            const now = Date.now();
+            const due = [];
+            let changed = false;
+            clients.forEach(c => {
+                if (c.reminder && !c.reminder.fired && reminderTime(c.reminder) <= now) {
+                    c.reminder.fired = true;
+                    changed = true;
+                    due.push(c);
+                }
+            });
+            if (due.length) {
+                playAlarmSound();
+                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                    due.forEach(c => {
+                        try {
+                            new Notification('Reminder: ' + (c.clientName || c.name), {
+                                body: (c.reminder && c.reminder.note) || 'Time to follow up',
+                                tag: 'tier-reminder-' + c.id
+                            });
+                        } catch (e) { /* ignore */ }
+                    });
+                }
+                showAlarmBanner(due);
+            }
+            if (changed) {
+                saveToStorage();
+                renderCards();
+            }
+        }
+        setInterval(checkReminders, 20000);
+
+        renderCards();
+        checkReminders();
+    </script>
+</body>
+</html>
