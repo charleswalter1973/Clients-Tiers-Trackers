@@ -249,6 +249,7 @@
             display: flex; justify-content: space-around; align-items: center; z-index: 999;
         }
         .nav-item {
+            flex: 1;
             border: none; background: none; font-size: 11px; color: #555; cursor: pointer;
             display: flex; flex-direction: column; align-items: center;
         }
@@ -523,8 +524,8 @@
                             ${reminderHtml}
                         </div>
                         <div class="card-actions-row">
-                            ${cleanPhone ? `<a href="tel:${cleanPhone}" class="action-btn" title="Call">📞</a>` : ''}
-                            ${cleanPhone ? `<a href="https://wa.me/${cleanPhone}" class="action-btn" title="WhatsApp" target="_blank" rel="noopener">💬</a>` : ''}
+                            ${cleanPhone ? `<a href="tel:${escapeHtml(cleanPhone)}" class="action-btn" title="Call">📞</a>` : ''}
+                            ${cleanPhone ? `<a href="https://wa.me/${escapeHtml(cleanPhone)}" class="action-btn" title="WhatsApp" target="_blank" rel="noopener">💬</a>` : ''}
                             ${c.email ? `<a href="mailto:${escapeHtml(c.email)}" class="action-btn" title="Email">✉️</a>` : ''}
                             <button class="action-btn" onclick="openReminderModal(${c.id})" title="Set reminder">⏰</button>
                             <button class="action-btn" onclick="editClient(${c.id})" title="Edit">✏️</button>
@@ -648,7 +649,7 @@
                 const text = ret.data.text;
 
                 const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-                const phoneMatch = text.match(/(\+?\d[\d\s-]{8,}\d)/);
+                const phoneMatch = text.match(/(\+?\d[\d\s().-]{8,}\d)/);
                 const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
 
                 if (textLines.length > 0 && !document.getElementById('clientName').value) {
