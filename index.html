@@ -16,9 +16,7 @@
             --least: #6c757d;
             --text: #333333;
         }
-
         * { box-sizing: border-box; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
@@ -27,7 +25,6 @@
             padding: 0;
             padding-bottom: 80px;
         }
-
         .app-header {
             background-color: var(--header-bg);
             color: white;
@@ -37,9 +34,7 @@
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .container { padding: 12px; }
-
         .btn-add-main {
             width: 100%;
             padding: 12px;
@@ -56,7 +51,6 @@
             justify-content: center;
             gap: 8px;
         }
-
         .metrics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -81,11 +75,9 @@
         .metric-header.warm { background-color: var(--warm); }
         .metric-header.occ { background-color: var(--occ); }
         .metric-header.least { background-color: var(--least); }
-
         .metric-body { padding: 8px 4px; }
         .metric-val { font-size: 20px; font-weight: bold; color: #111; }
         .metric-sub { font-size: 9px; color: #777; margin-top: 2px; }
-
         .section-title {
             font-size: 16px;
             font-weight: bold;
@@ -117,17 +109,15 @@
             background: #e9ecef;
             flex-shrink: 0;
         }
-        .card-details {
-            flex: 1 1 150px;
-            min-width: 0;
-        }
+        .card-details { flex: 1 1 150px; min-width: 0; }
         .card-title {
             font-size: 15px;
             font-weight: bold;
             margin: 0 0 3px 0;
             color: #222;
+            word-break: break-word;
         }
-        .card-sub { font-size: 11px; color: #555; margin-bottom: 4px; }
+        .card-sub { font-size: 11px; color: #555; margin-bottom: 4px; word-break: break-word; }
         .card-notes {
             font-size: 12px;
             color: #444;
@@ -146,7 +136,6 @@
         }
         .card-reminder.due { color: #d90429; }
 
-        /* Horizontal action row */
         .card-actions-row {
             display: flex;
             flex-wrap: wrap;
@@ -218,7 +207,6 @@
             border-radius: 6px; box-sizing: border-box; font-size: 13px;
         }
 
-        /* Camera capture buttons */
         .capture-row {
             display: flex;
             gap: 8px;
@@ -242,7 +230,6 @@
         .capture-row label:hover { background: #e9f7ef; }
         .capture-row input[type="file"] { display: none; }
 
-        /* Bottom nav */
         .navbar {
             position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
             background: #fff; border-top: 1px solid #ddd;
@@ -254,6 +241,44 @@
             display: flex; flex-direction: column; align-items: center;
         }
         .nav-item span { font-size: 18px; }
+
+        .toast {
+            position: fixed;
+            bottom: 90px; left: 50%; transform: translateX(-50%);
+            background: #333; color: #fff;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            z-index: 3000;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.show { opacity: 1; }
+
+        .backup-banner {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: #f77f00;
+            color: #fff;
+            padding: 10px 14px;
+            font-size: 12px;
+            z-index: 2000;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .backup-banner button {
+            margin-left: 10px;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 11px;
+            cursor: pointer;
+        }
 
         @media (max-width: 400px) {
             .card-thumb { width: 55px; height: 55px; }
@@ -319,6 +344,7 @@
                     <input type="file" id="fileInput" accept="image/*" onchange="scanCard(event)">
                 </div>
                 <small id="ocrStatus" style="color:#0066cc; font-weight:bold; display:block; margin-top:6px;"></small>
+                <img id="previewImg" style="display:none; max-width:100%; max-height:160px; border-radius:8px; margin-top:8px;" alt="">
             </div>
 
             <form id="architectForm" onsubmit="saveClient(event)">
@@ -370,8 +396,6 @@
                     <input type="text" id="newRemNote" placeholder="e.g. Follow up about the quote" style="margin-top:6px;">
                 </div>
 
-                <input type="hidden" id="cardImgData">
-
                 <button type="submit" id="saveBtn" style="width:100%; padding:10px; background:#2b9348; color:#fff; border:none; border-radius:6px; font-weight:bold;">Save Client</button>
                 <button type="button" id="modalDeleteBtn" onclick="deleteFromModal()" style="display:none; width:100%; padding:10px; margin-top:6px; background:#d90429; color:#fff; border:none; border-radius:6px; font-weight:bold;">🗑️ Delete Client</button>
                 <button type="button" onclick="closeModal('addModal')" style="width:100%; padding:8px; margin-top:6px; background:#ccc; border:none; border-radius:6px;">Cancel</button>
@@ -402,11 +426,11 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Settings & Backup Modal -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <h3>⚙️ Settings & Backup</h3>
-            <p style="font-size: 12px; color: #666;">Export your leads database to Google Drive or restore an existing backup file.</p>
+            <p style="font-size: 12px; color: #666;">All data lives on this device only. Back up regularly and keep copies in a safe place.</p>
 
             <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
                 <label>🔔 Reminder Alarms</label>
@@ -414,8 +438,13 @@
             </div>
 
             <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
-                <label>☁️ Export Backup File</label>
+                <label>☁️ Plain Backup</label>
                 <button onclick="backupToDrive()" style="width:100%; padding:10px; background:#007bff; color:#fff; border:none; border-radius:6px; font-weight:bold;">Download JSON Backup</button>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
+                <label>🔒 Encrypted Backup</label>
+                <button onclick="encryptedBackup()" style="width:100%; padding:10px; background:#2b9348; color:#fff; border:none; border-radius:6px; font-weight:bold;">Download Encrypted Backup</button>
             </div>
 
             <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
@@ -434,451 +463,862 @@
         <button class="nav-item" onclick="toggleSearch()"><span>🔍</span>Search</button>
         <button class="nav-item" onclick="openModal('settingsModal')"><span>⚙️</span>Settings</button>
     </div>
-    <script>
-        let clients = JSON.parse(localStorage.getItem('tier_clients') || '[]');
-        let currentFilter = 'All';
-        let searchMode = false;
 
-        function saveToStorage() {
-            try {
-                localStorage.setItem('tier_clients', JSON.stringify(clients));
-            } catch (e) {
-                alert('Could not save data. Your browser storage may be full or blocked.');
+    <div class="toast" id="toast"></div>
+<script>
+(function(){
+"use strict";
+
+/* ============ Storage layer ============ */
+/* Metadata in localStorage (small) + photos in IndexedDB (large) */
+const LS_KEY = "tier_clients_v2";
+const PHOTO_STORE = "tier_photos";
+const DB_NAME = "tierTrackerDB", DB_VERSION = 1;
+let dbPromise = null;
+let idbOK = true;
+
+try {
+    dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(PHOTO_STORE)) {
+                db.createObjectStore(PHOTO_STORE, { keyPath: "id" });
             }
-        }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+    });
+} catch (e) { idbOK = false; }
 
-        function sortClientsByName() {
-            clients.sort((a, b) => {
-                const an = (a.clientName || a.name || '').toLowerCase();
-                const bn = (b.clientName || b.name || '').toLowerCase();
-                return an.localeCompare(bn, undefined, { sensitivity: 'base', numeric: true });
-            });
-        }
-        sortClientsByName();
+function idbPutPhoto(id, dataUrl) {
+    return dbPromise.then(db => new Promise((res, rej) => {
+        const r = db.transaction(PHOTO_STORE, "readwrite").objectStore(PHOTO_STORE).put({ id, data: dataUrl });
+        r.onsuccess = () => res();
+        r.onerror = () => rej(r.error);
+    }));
+}
+function idbGetPhoto(id) {
+    return dbPromise.then(db => new Promise((res, rej) => {
+        const r = db.transaction(PHOTO_STORE, "readonly").objectStore(PHOTO_STORE).get(id);
+        r.onsuccess = () => res(r.result ? r.result.data : null);
+        r.onerror = () => rej(r.error);
+    }));
+}
+function idbDeletePhoto(id) {
+    return dbPromise.then(db => new Promise((res, rej) => {
+        const r = db.transaction(PHOTO_STORE, "readwrite").objectStore(PHOTO_STORE).delete(id);
+        r.onsuccess = () => res();
+        r.onerror = () => rej(r.error);
+    }));
+}
+function idbAllPhotos() {
+    return dbPromise.then(db => new Promise((res, rej) => {
+        const r = db.transaction(PHOTO_STORE, "readonly").objectStore(PHOTO_STORE).getAll();
+        r.onsuccess = () => res(r.result || []);
+        r.onerror = () => rej(r.error);
+    }));
+}
 
-        function updateMetrics() {
-            document.getElementById('cnt-warm').innerText = clients.filter(c => c.potential === 'Warm Leads').length;
-            document.getElementById('cnt-occ').innerText = clients.filter(c => c.potential === 'Occasional').length;
-            document.getElementById('cnt-least').innerText = clients.filter(c => c.potential === 'Least Potential').length;
-        }
+function loadClients() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
+    catch (e) { return []; }
+}
+function saveClients() {
+    try {
+        /* Save metadata WITHOUT photo (photo lives in IDB) */
+        const stripped = clients.map(c => {
+            const copy = { ...c };
+            delete copy.cardImg;
+            return copy;
+        });
+        localStorage.setItem(LS_KEY, JSON.stringify(stripped));
+        return true;
+    } catch (e) {
+        showToast("Storage full — please back up and remove old cards");
+        return false;
+    }
+}
 
-        function setFilter(filter) {
-            currentFilter = filter;
-            renderCards();
-        }
+/* ============ State ============ */
+let clients = [];
+let currentFilter = "All";
+let searchMode = false;
+let saveBusy = false;
+let pendingPhotoData = "";      /* data URL of the currently attached card */
+let pendingPhotoId = null;      /* id this photo belongs to (null = new) */
 
-        function escapeHtml(str) {
-            return String(str == null ? '' : str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
+const $ = (id) => document.getElementById(id);
+const todayStr = () => new Date().toISOString().slice(0,10);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 
-        function renderCards() {
-            updateMetrics();
-            const list = document.getElementById('cardsList');
-            list.innerHTML = '';
+function showToast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove("show"), 2200);
+}
 
-            const searchVal = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+function escapeHtml(str){
+    return String(str == null ? "" : str).replace(/[&<>"']/g, m => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    }[m]));
+}
+function safePhone(p){ return String(p || "").replace(/[^\d+]/g, ""); }
 
-            const filtered = clients.filter(c => {
-                const matchesFilter = currentFilter === 'All' || c.potential === currentFilter;
-                if (!matchesFilter) return false;
-                if (!searchVal) return true;
-                const clientName = (c.clientName || c.name || '').toLowerCase();
-                const firmName = (c.firmName || '').toLowerCase();
-                return clientName.includes(searchVal) ||
-                       firmName.includes(searchVal) ||
-                       (c.city || '').toLowerCase().includes(searchVal) ||
-                       (c.specialization || '').toLowerCase().includes(searchVal);
-            });
+/* ============ Image processing ============ */
+function fileToImage(file){
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+    });
+}
+function resizeImage(img, maxDim){
+    const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL("image/jpeg", 0.72);
+}
+async function processCardImage(file){
+    const img = await fileToImage(file);
+    return resizeImage(img, 900);
+}
 
-            filtered.sort((a, b) => {
-                const an = (a.clientName || a.name || '').toLowerCase();
-                const bn = (b.clientName || b.name || '').toLowerCase();
-                return an.localeCompare(bn, undefined, { sensitivity: 'base', numeric: true });
-            });
+/* ============ Rendering ============ */
+function sortClientsByName(){
+    clients.sort((a, b) => {
+        const an = (a.clientName || a.name || "").toLowerCase();
+        const bn = (b.clientName || b.name || "").toLowerCase();
+        return an.localeCompare(bn, undefined, { sensitivity: "base", numeric: true });
+    });
+}
 
-            if (filtered.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#888; margin:40px 0;">No clients in this view.</p>';
-                return;
-            }
+function updateMetrics(){
+    $("cnt-warm").innerText = clients.filter(c => c.potential === "Warm Leads").length;
+    $("cnt-occ").innerText = clients.filter(c => c.potential === "Occasional").length;
+    $("cnt-least").innerText = clients.filter(c => c.potential === "Least Potential").length;
+}
 
-            filtered.forEach(c => {
-                const img = c.cardImg || 'https://via.placeholder.com/65?text=Card';
-                const cleanPhone = (c.phone || '').replace(/\D/g, '');
-                const clientName = escapeHtml(c.clientName || c.name || 'Unnamed');
-                const firmPart = c.firmName ? escapeHtml(c.firmName) + ' · ' : '';
-                const reminderHtml = reminderBadge(c);
+function setFilter(filter){
+    currentFilter = filter;
+    renderCards();
+}
 
-                list.innerHTML += `
-                    <div class="lead-card" data-id="${c.id}">
-                        <img src="${img}" class="card-thumb" alt="card">
-                        <div class="card-details">
-                            <div class="card-title">${clientName}</div>
-                            <div class="card-sub">${firmPart}📍 ${escapeHtml(c.city || '')} | ${escapeHtml(c.specialization || 'General Project')}</div>
-                            <div class="card-notes">${escapeHtml(c.notes || 'No follow-up notes.')}</div>
-                            <div class="card-date">Last contact: ${escapeHtml(c.date || '')}</div>
-                            ${reminderHtml}
-                        </div>
-                        <div class="card-actions-row">
-                            ${cleanPhone ? `<a href="tel:${escapeHtml(cleanPhone)}" class="action-btn" title="Call">📞</a>` : ''}
-                            ${cleanPhone ? `<a href="https://wa.me/${escapeHtml(cleanPhone)}" class="action-btn" title="WhatsApp" target="_blank" rel="noopener">💬</a>` : ''}
-                            ${c.email ? `<a href="mailto:${escapeHtml(c.email)}" class="action-btn" title="Email">✉️</a>` : ''}
-                            <button class="action-btn" onclick="openReminderModal(${c.id})" title="Set reminder">⏰</button>
-                            <button class="action-btn" onclick="editClient(${c.id})" title="Edit">✏️</button>
-                            <button class="action-btn delete-btn" onclick="deleteClient(${c.id})" title="Delete">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+function renderCards(){
+    updateMetrics();
+    const list = $("cardsList");
+    const searchVal = ($("searchInput").value || "").toLowerCase().trim();
+    list.innerHTML = "";
 
-        function reminderBadge(c) {
-            if (!c.reminder) return '';
-            const due = !c.reminder.fired && reminderTime(c.reminder) <= Date.now();
-            return `<div class="card-reminder${due ? ' due' : ''}">⏰ ${due ? 'Reminder due' : 'Reminder: ' + fmtReminder(c.reminder)}</div>`;
-        }
+    const filtered = clients.filter(c => {
+        const matchesFilter = currentFilter === "All" || c.potential === currentFilter;
+        if (!matchesFilter) return false;
+        if (!searchVal) return true;
+        const clientName = (c.clientName || c.name || "").toLowerCase();
+        const firmName = (c.firmName || "").toLowerCase();
+        return clientName.includes(searchVal) ||
+               firmName.includes(searchVal) ||
+               (c.city || "").toLowerCase().includes(searchVal) ||
+               (c.specialization || "").toLowerCase().includes(searchVal);
+    });
 
-        function openModal(id) { document.getElementById(id).style.display = 'block'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    filtered.sort((a, b) => {
+        const an = (a.clientName || a.name || "").toLowerCase();
+        const bn = (b.clientName || b.name || "").toLowerCase();
+        return an.localeCompare(bn, undefined, { sensitivity: "base", numeric: true });
+    });
 
-        /* ---------- ADD / EDIT ---------- */
-        function openAddModal() {
-            document.getElementById('modalTitle').innerText = 'Add / Scan Client';
-            document.getElementById('editId').value = '';
-            document.getElementById('architectForm').reset();
-            document.getElementById('cardImgData').value = '';
-            document.getElementById('ocrStatus').innerText = '';
-            document.getElementById('city').value = 'Mumbai';
-            document.getElementById('newRemTime').value = '09:00';
-            document.getElementById('modalDeleteBtn').style.display = 'none';
-            openModal('addModal');
-        }
+    if (filtered.length === 0){
+        list.innerHTML = '<p style="text-align:center; color:#888; margin:40px 0;">No clients in this view.</p>';
+        return;
+    }
 
-        function editClient(id) {
-            const c = clients.find(x => x.id === id);
-            if (!c) return;
-            document.getElementById('modalTitle').innerText = 'Edit Client';
-            document.getElementById('editId').value = c.id;
-            document.getElementById('clientName').value = c.clientName || c.name || '';
-            document.getElementById('firmName').value = c.firmName || '';
-            document.getElementById('city').value = c.city || 'Mumbai';
-            document.getElementById('specialization').value = c.specialization || '';
-            document.getElementById('phone').value = c.phone || '';
-            document.getElementById('email').value = c.email || '';
-            document.getElementById('potential').value = c.potential || 'Warm Leads';
-            document.getElementById('notes').value = c.notes || '';
-            document.getElementById('cardImgData').value = c.cardImg || '';
-            if (c.reminder) {
-                document.getElementById('newRemDate').value = c.reminder.date || '';
-                document.getElementById('newRemTime').value = c.reminder.time || '09:00';
-                document.getElementById('newRemNote').value = c.reminder.note || '';
+    let html = "";
+    filtered.forEach(c => {
+        const safeId = escapeHtml(c.id);
+        const img = c._photoData || "https://via.placeholder.com/65?text=Card";
+        const phone = safePhone(c.phone);
+        const email = String(c.email || "").trim();
+        const clientName = escapeHtml(c.clientName || c.name || "Unnamed");
+        const firmPart = c.firmName ? escapeHtml(c.firmName) + " · " : "";
+        const reminderHtml = reminderBadge(c);
+
+        html += `
+            <div class="lead-card" data-id="${safeId}">
+                <img src="${img}" class="card-thumb" alt="card">
+                <div class="card-details">
+                    <div class="card-title">${clientName}</div>
+                    <div class="card-sub">${firmPart}📍 ${escapeHtml(c.city || "")} | ${escapeHtml(c.specialization || "General Project")}</div>
+                    <div class="card-notes">${escapeHtml(c.notes || "No follow-up notes.")}</div>
+                    <div class="card-date">Last contact: ${escapeHtml(c.date || "")}</div>
+                    ${reminderHtml}
+                </div>
+                <div class="card-actions-row">
+                    ${phone ? `<a href="tel:${phone}" class="action-btn" title="Call">📞</a>` : ""}
+                    ${phone ? `<a href="https://wa.me/${phone.replace(/^\+/, "")}" class="action-btn" title="WhatsApp" target="_blank" rel="noopener">💬</a>` : ""}
+                    ${email ? `<a href="mailto:${escapeHtml(email)}" class="action-btn" title="Email">✉️</a>` : ""}
+                    <button class="action-btn" onclick="openReminderModal('${safeId}')" title="Set reminder">⏰</button>
+                    <button class="action-btn" onclick="editClient('${safeId}')" title="Edit">✏️</button>
+                    <button class="action-btn delete-btn" onclick="deleteClient('${safeId}')" title="Delete">🗑️</button>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+function reminderBadge(c){
+    if (!c.reminder) return "";
+    const due = !c.reminder.fired && reminderTime(c.reminder) <= Date.now();
+    const text = due ? "Reminder due" : "Reminder: " + fmtReminder(c.reminder);
+    return `<div class="card-reminder${due ? " due" : ""}">⏰ ${escapeHtml(text)}</div>`;
+}
+
+/* ============ Modal helpers ============ */
+function openModal(id){ $(id).style.display = "block"; }
+function closeModal(id){ $(id).style.display = "none"; }
+
+/* ============ ADD / EDIT ============ */
+function openAddModal(){
+    $("modalTitle").innerText = "Add / Scan Client";
+    $("editId").value = "";
+    $("architectForm").reset();
+    $("city").value = "Mumbai";
+    $("newRemTime").value = "09:00";
+    $("ocrStatus").innerText = "";
+    $("previewImg").style.display = "none";
+    $("previewImg").removeAttribute("src");
+    $("modalDeleteBtn").style.display = "none";
+    pendingPhotoData = "";
+    pendingPhotoId = null;
+    $("saveBtn").disabled = false;
+    $("saveBtn").innerText = "Save Client";
+    openModal("addModal");
+}
+
+async function editClient(id){
+    const c = clients.find(x => String(x.id) === String(id));
+    if (!c) return;
+    $("modalTitle").innerText = "Edit Client";
+    $("editId").value = c.id;
+    $("clientName").value = c.clientName || c.name || "";
+    $("firmName").value = c.firmName || "";
+    $("city").value = c.city || "Mumbai";
+    $("specialization").value = c.specialization || "";
+    $("phone").value = c.phone || "";
+    $("email").value = c.email || "";
+    $("potential").value = c.potential || "Warm Leads";
+    $("notes").value = c.notes || "";
+
+    if (c.reminder){
+        $("newRemDate").value = c.reminder.date || "";
+        $("newRemTime").value = c.reminder.time || "09:00";
+        $("newRemNote").value = c.reminder.note || "";
+    } else {
+        $("newRemDate").value = "";
+        $("newRemTime").value = "09:00";
+        $("newRemNote").value = "";
+    }
+
+    /* Load photo from IDB */
+    pendingPhotoData = "";
+    pendingPhotoId = c.id;
+    try {
+        if (idbOK){
+            const data = await idbGetPhoto(c.id);
+            if (data){
+                pendingPhotoData = data;
+                $("previewImg").src = data;
+                $("previewImg").style.display = "block";
             } else {
-                document.getElementById('newRemDate').value = '';
-                document.getElementById('newRemTime').value = '09:00';
-                document.getElementById('newRemNote').value = '';
-            }
-            document.getElementById('ocrStatus').innerText = '';
-            document.getElementById('modalDeleteBtn').style.display = 'block';
-            openModal('addModal');
-        }
-
-        function deleteClient(id) {
-            if (!confirm('Delete this client permanently?')) return;
-            clients = clients.filter(c => c.id !== id);
-            sortClientsByName();
-            saveToStorage();
-            renderCards();
-            if (document.getElementById('addModal').style.display === 'block' &&
-                String(document.getElementById('editId').value) === String(id)) {
-                closeModal('addModal');
+                $("previewImg").style.display = "none";
             }
         }
+    } catch (e){
+        $("previewImg").style.display = "none";
+    }
 
-        function deleteFromModal() {
-            const editId = document.getElementById('editId').value;
-            if (!editId) return;
-            if (!confirm('Delete this client permanently?')) return;
-            clients = clients.filter(c => String(c.id) !== String(editId));
-            sortClientsByName();
-            saveToStorage();
-            renderCards();
-            closeModal('addModal');
-            document.getElementById('editId').value = '';
-            document.getElementById('architectForm').reset();
-        }
+    $("ocrStatus").innerText = "";
+    $("modalDeleteBtn").style.display = "block";
+    $("saveBtn").disabled = false;
+    $("saveBtn").innerText = "Save Changes";
+    openModal("addModal");
+}
 
-        function toggleSearch() {
-            searchMode = true;
-            document.getElementById('searchBarWrap').style.display = 'block';
-            document.getElementById('searchInput').focus();
-        }
+function deleteClient(id){
+    if (!confirm("Delete this client permanently?")) return;
+    clients = clients.filter(c => String(c.id) !== String(id));
+    if (idbOK) idbDeletePhoto(id).catch(() => {});
+    sortClientsByName();
+    saveClients();
+    renderCards();
+    if ($("addModal").style.display === "block" &&
+        String($("editId").value) === String(id)){
+        closeModal("addModal");
+    }
+}
 
-        function goBack() {
-            const openIds = ['addModal', 'reminderModal', 'settingsModal'];
-            const openId = openIds.find(id => document.getElementById(id).style.display === 'block');
-            if (openId) { closeModal(openId); return; }
-            if (searchMode) {
-                searchMode = false;
-                document.getElementById('searchInput').value = '';
-                document.getElementById('searchBarWrap').style.display = 'none';
-                renderCards();
-                return;
-            }
-            if (currentFilter !== 'All') { setFilter('All'); return; }
-            window.history.back();
-        }
+function deleteFromModal(){
+    const editId = $("editId").value;
+    if (!editId) return;
+    if (!confirm("Delete this client permanently?")) return;
+    clients = clients.filter(c => String(c.id) !== String(editId));
+    if (idbOK) idbDeletePhoto(editId).catch(() => {});
+    sortClientsByName();
+    saveClients();
+    renderCards();
+    closeModal("addModal");
+    $("editId").value = "";
+    $("architectForm").reset();
+}
 
-        /* ---------- OCR ---------- */
-        async function scanCard(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+function toggleSearch(){
+    searchMode = true;
+    $("searchBarWrap").style.display = "block";
+    $("searchInput").focus();
+}
 
-            const reader = new FileReader();
-            reader.onload = function(e) { document.getElementById('cardImgData').value = e.target.result; };
-            reader.readAsDataURL(file);
-
-            const status = document.getElementById('ocrStatus');
-            status.innerText = '⏳ Scanning card text...';
-
-            try {
-                const ret = await Tesseract.recognize(file, 'eng');
-                const text = ret.data.text;
-
-                const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-                const phoneMatch = text.match(/(\+?\d[\d\s().-]{8,}\d)/);
-                const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-
-                if (textLines.length > 0 && !document.getElementById('clientName').value) {
-                    document.getElementById('clientName').value = textLines[0];
-                }
-                if (emailMatch && !document.getElementById('email').value) {
-                    document.getElementById('email').value = emailMatch[0];
-                }
-                if (phoneMatch && !document.getElementById('phone').value) {
-                    document.getElementById('phone').value = phoneMatch[0].replace(/\s+/g, '');
-                }
-
-                status.innerText = '✅ Card scanned! Verify or edit details below.';
-            } catch (err) {
-                status.innerText = '⚠️ Auto-fill failed. Enter details manually below.';
-            } finally {
-                event.target.value = '';
-            }
-        }
-
-        function saveClient(e) {
-            e.preventDefault();
-            const editId = document.getElementById('editId').value;
-            const clientData = {
-                clientName: document.getElementById('clientName').value.trim(),
-                firmName: document.getElementById('firmName').value.trim(),
-                city: document.getElementById('city').value,
-                specialization: document.getElementById('specialization').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                potential: document.getElementById('potential').value,
-                notes: document.getElementById('notes').value,
-                cardImg: document.getElementById('cardImgData').value,
-                reminder: buildReminder(
-                    document.getElementById('newRemDate').value,
-                    document.getElementById('newRemTime').value,
-                    document.getElementById('newRemNote').value.trim()
-                )
-            };
-
-            if (editId) {
-                const idx = clients.findIndex(c => String(c.id) === String(editId));
-                if (idx !== -1) {
-                    clients[idx] = { ...clients[idx], ...clientData };
-                }
-            } else {
-                clients.unshift({
-                    id: Date.now(),
-                    ...clientData,
-                    date: new Date().toLocaleDateString()
-                });
-            }
-
-            sortClientsByName();
-            saveToStorage();
-            closeModal('addModal');
-            renderCards();
-            document.getElementById('architectForm').reset();
-            document.getElementById('ocrStatus').innerText = '';
-            document.getElementById('editId').value = '';
-            document.getElementById('modalDeleteBtn').style.display = 'none';
-        }
-
-        /* ---------- Backup / Restore ---------- */
-        function backupToDrive() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clients, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `client_tiers_backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
-        }
-
-        function restoreFromDrive(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        clients = imported;
-                        sortClientsByName();
-                        saveToStorage();
-                        renderCards();
-                        alert("Database restored successfully!");
-                        closeModal('settingsModal');
-                    } else {
-                        alert("Backup file format not recognized.");
-                    }
-                } catch (err) {
-                    alert("Error restoring backup file.");
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        /* ---------- Reminders ---------- */
-        function buildReminder(date, time, note) {
-            if (!date) return null;
-            return { date, time: time || '09:00', note: note || '', fired: false };
-        }
-        function reminderTime(r) {
-            return new Date(`${r.date}T${r.time || '09:00'}:00`).getTime();
-        }
-        function fmtReminder(r) {
-            const d = new Date(`${r.date}T${r.time || '09:00'}:00`);
-            return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }) +
-                ' at ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-        }
-
-        let activeReminderId = null;
-        function openReminderModal(id) {
-            activeReminderId = id;
-            const c = clients.find(x => x.id === id);
-            if (!c) return;
-            document.getElementById('reminderForName').innerText = 'For: ' + (c.clientName || c.name || 'Unnamed');
-            document.getElementById('remDate').value = c.reminder ? c.reminder.date : '';
-            document.getElementById('remTime').value = c.reminder ? c.reminder.time : '09:00';
-            document.getElementById('remNote').value = c.reminder ? c.reminder.note : '';
-            openModal('reminderModal');
-        }
-
-        function saveReminder() {
-            const c = clients.find(x => x.id === activeReminderId);
-            if (!c) return;
-            const date = document.getElementById('remDate').value;
-            if (!date) { alert('Pick a date for the reminder first.'); return; }
-            c.reminder = buildReminder(date, document.getElementById('remTime').value, document.getElementById('remNote').value.trim());
-            saveToStorage();
-            closeModal('reminderModal');
-            renderCards();
-            requestNotifyPermission(false);
-        }
-
-        function clearReminder() {
-            const c = clients.find(x => x.id === activeReminderId);
-            if (!c) return;
-            c.reminder = null;
-            saveToStorage();
-            closeModal('reminderModal');
-            renderCards();
-        }
-
-        async function requestNotifyPermission(announce) {
-            if (typeof Notification === 'undefined') {
-                if (announce) alert("This browser can't show notifications, but in-app alarms will still work while this tab is open.");
-                return 'unsupported';
-            }
-            let perm = Notification.permission;
-            if (perm === 'default') {
-                try { perm = await Notification.requestPermission(); } catch (e) { /* ignore */ }
-            }
-            if (announce) {
-                if (perm === 'granted') alert('Alarm notifications enabled!');
-                else alert('Notifications are blocked — in-app alarms will still show while this tab is open.');
-            }
-            return perm;
-        }
-
-        function playAlarmSound() {
-            try {
-                const Ctx = window.AudioContext || window.webkitAudioContext;
-                const ctx = new Ctx();
-                const beep = (start) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.value = 880;
-                    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
-                    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + start + 0.02);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + 0.3);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(ctx.currentTime + start);
-                    osc.stop(ctx.currentTime + start + 0.32);
-                };
-                [0, 0.4, 0.8].forEach(beep);
-            } catch (e) { /* audio unavailable, skip silently */ }
-        }
-
-        function showAlarmBanner(dueClients) {
-            const text = dueClients.map(c =>
-                `${c.clientName || c.name}: ${(c.reminder && c.reminder.note) || 'Reminder due'}`
-            ).join(' • ');
-            document.getElementById('alarmBannerText').innerText = text;
-            document.getElementById('alarmBanner').style.display = 'block';
-        }
-
-        function dismissAlarmBanner() {
-            document.getElementById('alarmBanner').style.display = 'none';
-        }
-
-        function checkReminders() {
-            const now = Date.now();
-            const due = [];
-            let changed = false;
-            clients.forEach(c => {
-                if (c.reminder && !c.reminder.fired && reminderTime(c.reminder) <= now) {
-                    c.reminder.fired = true;
-                    changed = true;
-                    due.push(c);
-                }
-            });
-            if (due.length) {
-                playAlarmSound();
-                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                    due.forEach(c => {
-                        try {
-                            new Notification('Reminder: ' + (c.clientName || c.name), {
-                                body: (c.reminder && c.reminder.note) || 'Time to follow up',
-                                tag: 'tier-reminder-' + c.id
-                            });
-                        } catch (e) { /* ignore */ }
-                    });
-                }
-                showAlarmBanner(due);
-            }
-            if (changed) {
-                saveToStorage();
-                renderCards();
-            }
-        }
-        setInterval(checkReminders, 20000);
-
+function goBack(){
+    const openIds = ["addModal", "reminderModal", "settingsModal"];
+    const openId = openIds.find(id => $(id).style.display === "block");
+    if (openId){ closeModal(openId); return; }
+    if (searchMode){
+        searchMode = false;
+        $("searchInput").value = "";
+        $("searchBarWrap").style.display = "none";
         renderCards();
-        checkReminders();
-    </script>
+        return;
+    }
+    if (currentFilter !== "All"){ setFilter("All"); return; }
+    window.history.back();
+}
+
+/* ============ OCR ============ */
+let ocrBusy = false;
+async function scanCard(event){
+    const input = event.target;
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")){
+        showToast("Please select an image file");
+        return;
+    }
+    if (ocrBusy){
+        showToast("Still reading previous card…");
+        return;
+    }
+
+    const status = $("ocrStatus");
+    status.innerText = "⏳ Processing image…";
+
+    try {
+        pendingPhotoData = await processCardImage(file);
+        $("previewImg").src = pendingPhotoData;
+        $("previewImg").style.display = "block";
+    } catch (e){
+        status.innerText = "⚠️ Could not process image.";
+        return;
+    }
+
+    if (typeof Tesseract === "undefined"){
+        status.innerText = "✅ Photo attached. OCR not loaded — fill manually.";
+        return;
+    }
+
+    ocrBusy = true;
+    status.innerText = "⏳ Scanning card text...";
+    try {
+        const ret = await Tesseract.recognize(file, "eng");
+        const text = ret.data.text || "";
+        const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        const phoneMatch = text.match(/(\+?\d[\d\s().-]{8,}\d)/);
+        const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 2);
+
+        if (lines.length > 0 && !$("clientName").value){
+            $("clientName").value = lines[0];
+        }
+        if (emailMatch && !$("email").value){
+            $("email").value = emailMatch[0];
+        }
+        if (phoneMatch && !$("phone").value){
+            $("phone").value = phoneMatch[0].replace(/\s+/g, "");
+        }
+        status.innerText = "✅ Card scanned! Verify or edit details below.";
+    } catch (err){
+        status.innerText = "⚠️ Auto-fill failed. Enter details manually.";
+    } finally {
+        ocrBusy = false;
+    }
+}
+
+/* ============ SAVE with duplicate guard ============ */
+async function saveClient(e){
+    if (e && e.preventDefault) e.preventDefault();
+    if (saveBusy) return;
+
+    const name = ($("clientName").value || "").trim();
+    if (!name){ showToast("Please enter a client name"); return; }
+
+    saveBusy = true;
+    const btn = $("saveBtn");
+    const oldLabel = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Saving…";
+
+    try {
+        const editId = $("editId").value;
+        const clientData = {
+            clientName: name,
+            firmName: ($("firmName").value || "").trim(),
+            city: ($("city").value || "").trim(),
+            specialization: ($("specialization").value || "").trim(),
+            phone: ($("phone").value || "").trim(),
+            email: ($("email").value || "").trim(),
+            potential: $("potential").value,
+            notes: ($("notes").value || "").trim(),
+            reminder: buildReminder(
+                $("newRemDate").value,
+                $("newRemTime").value,
+                ($("newRemNote").value || "").trim()
+            )
+        };
+
+        if (editId){
+            const idx = clients.findIndex(c => String(c.id) === String(editId));
+            if (idx !== -1){
+                clients[idx] = { ...clients[idx], ...clientData, updatedAt: new Date().toISOString() };
+                if (pendingPhotoData && idbOK){
+                    await idbPutPhoto(editId, pendingPhotoData);
+                } else if (!pendingPhotoData && idbOK){
+                    await idbDeletePhoto(editId).catch(() => {});
+                }
+                showToast("Client updated");
+            }
+        } else {
+            const newId = uid();
+            const newEntry = {
+                id: newId,
+                ...clientData,
+                date: new Date().toLocaleDateString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            if (pendingPhotoData && idbOK){
+                await idbPutPhoto(newId, pendingPhotoData);
+            }
+            clients.unshift(newEntry);
+            showToast("Client saved");
+        }
+
+        sortClientsByName();
+        saveClients();
+        await loadPhotoData();
+        closeModal("addModal");
+        renderCards();
+        $("architectForm").reset();
+        $("ocrStatus").innerText = "";
+        $("editId").value = "";
+        $("previewImg").style.display = "none";
+        $("modalDeleteBtn").style.display = "none";
+        pendingPhotoData = "";
+        pendingPhotoId = null;
+    } catch (err){
+        console.error(err);
+        showToast("Could not save — try again");
+    } finally {
+        saveBusy = false;
+        btn.disabled = false;
+        btn.innerText = oldLabel;
+    }
+}
+
+/* ============ Load photos into clients ============ */
+async function loadPhotoData(){
+    if (!idbOK) return;
+    try {
+        const photos = await idbAllPhotos();
+        const map = {};
+        photos.forEach(p => map[p.id] = p.data);
+        clients.forEach(c => {
+            c._photoData = map[c.id] || "";
+        });
+    } catch (e){ /* ignore */ }
+}
+
+/* ============ Backup / Restore ============ */
+async function backupToDrive(){
+    /* include photo data in backup */
+    const exportable = clients.map(c => {
+        const copy = { ...c };
+        delete copy._photoData;
+        return copy;
+    });
+    const photos = idbOK ? await idbAllPhotos() : [];
+    const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 2,
+        clients: exportable,
+        photos: photos   /* [{id, data}] */
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `client_tiers_backup_${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    localStorage.setItem("tier_lastBackup", Date.now());
+    showToast("Backup downloaded");
+}
+
+function restoreFromDrive(event){
+    const input = event.target;
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e){
+        let parsed;
+        try {
+            parsed = JSON.parse(e.target.result);
+        } catch (err){
+            alert("Error reading backup file.");
+            return;
+        }
+
+        if (parsed && parsed.format === "tier-encrypted"){
+            const pwd = prompt("This is an encrypted backup.\nEnter the password:");
+            if (!pwd) return;
+            try {
+                const dec = await decryptBackup(parsed, pwd);
+                await applyRestore(dec.clients || [], dec.photos || []);
+            } catch (err){
+                alert("Wrong password or corrupted file.");
+            }
+            return;
+        }
+
+        /* plain JSON */
+        const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.clients) ? parsed.clients : null);
+        if (!incoming){ alert("Backup file format not recognized."); return; }
+        const photos = Array.isArray(parsed.photos) ? parsed.photos : [];
+        await applyRestore(incoming, photos);
+    };
+    reader.readAsText(file);
+}
+
+async function applyRestore(incoming, photos){
+    if (incoming.length > 5000){
+        if (!confirm(`This backup contains ${incoming.length} clients. Continue?`)) return;
+    }
+    if (!confirm("Merge this backup with your current data?\nExisting items with newer edits will be kept.")) return;
+
+    /* Restore photos into IDB */
+    if (idbOK && photos.length){
+        for (const p of photos){
+            if (p.id && p.data){
+                try { await idbPutPhoto(p.id, p.data); } catch (e) {}
+            }
+        }
+    }
+
+    let added = 0, updated = 0;
+    for (const c of incoming){
+        if (!c.id) c.id = uid();
+        const idx = clients.findIndex(x => String(x.id) === String(c.id));
+        if (idx === -1){
+            clients.push(c);
+            added++;
+        } else {
+            const existing = clients[idx];
+            if (new Date(c.updatedAt||0) > new Date(existing.updatedAt||0)){
+                clients[idx] = { ...existing, ...c };
+                updated++;
+            }
+        }
+    }
+    sortClientsByName();
+    saveClients();
+    await loadPhotoData();
+    renderCards();
+    closeModal("settingsModal");
+    showToast(`Restored: ${added} new, ${updated} updated`);
+}
+
+/* ============ Encrypted backup ============ */
+async function deriveKey(password, salt){
+    const enc = new TextEncoder();
+    const baseKey = await crypto.subtle.importKey(
+        "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
+    );
+    return crypto.subtle.deriveKey(
+        { name:"PBKDF2", salt, iterations: 150000, hash:"SHA-256" },
+        baseKey,
+        { name:"AES-GCM", length: 256 },
+        false,
+        ["encrypt","decrypt"]
+    );
+}
+function bufToB64(buf){
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+}
+function b64ToBuf(b64){
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+}
+async function encryptBackup(password){
+    const enc = new TextEncoder();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(password, salt);
+    const exportable = clients.map(c => { const copy = { ...c }; delete copy._photoData; return copy; });
+    const photos = idbOK ? await idbAllPhotos() : [];
+    const payload = { exportedAt: new Date().toISOString(), clients: exportable, photos };
+    const plaintext = enc.encode(JSON.stringify(payload));
+    const ciphertext = await crypto.subtle.encrypt({ name:"AES-GCM", iv }, key, plaintext);
+    return {
+        format: "tier-encrypted",
+        version: 1,
+        salt: bufToB64(salt),
+        iv: bufToB64(iv),
+        data: bufToB64(ciphertext)
+    };
+}
+async function decryptBackup(bundle, password){
+    if (!bundle || bundle.format !== "tier-encrypted") throw new Error("not encrypted");
+    const salt = b64ToBuf(bundle.salt);
+    const iv = b64ToBuf(bundle.iv);
+    const data = b64ToBuf(bundle.data);
+    const key = await deriveKey(password, salt);
+    const plaintext = await crypto.subtle.decrypt({ name:"AES-GCM", iv }, key, data);
+    return JSON.parse(new TextDecoder().decode(plaintext));
+}
+
+async function encryptedBackup(){
+    if (!clients.length){ showToast("No clients to back up"); return; }
+    if (!crypto || !crypto.subtle){
+        showToast("Encryption needs HTTPS — open via https://");
+        return;
+    }
+    const pwd = prompt("Choose a password (min 6 characters).\nThere is NO recovery if you forget it.");
+    if (!pwd || pwd.length < 6){ showToast("Password must be at least 6 characters"); return; }
+    const confirm2 = prompt("Type the same password again:");
+    if (confirm2 !== pwd){ showToast("Passwords didn't match"); return; }
+    try {
+        const bundle = await encryptBackup(pwd);
+        const blob = new Blob([JSON.stringify(bundle, null, 2)], {type:"application/json"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `client_tiers_encrypted_${todayStr()}.json`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        localStorage.setItem("tier_lastBackup", Date.now());
+        showToast("Encrypted backup downloaded");
+    } catch (err){
+        console.error(err);
+        showToast("Encryption failed");
+    }
+}
+
+/* ============ Reminders ============ */
+function buildReminder(date, time, note){
+    if (!date) return null;
+    return { date, time: time || "09:00", note: note || "", fired: false };
+}
+function reminderTime(r){
+    return new Date(`${r.date}T${r.time || "09:00"}:00`).getTime();
+}
+function fmtReminder(r){
+    const d = new Date(`${r.date}T${r.time || "09:00"}:00`);
+    if (isNaN(d)) return "—";
+    return d.toLocaleDateString(undefined, { month: "short", day: "2-digit", year: "numeric" })
+        + " at " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+let activeReminderId = null;
+function openReminderModal(id){
+    activeReminderId = id;
+    const c = clients.find(x => String(x.id) === String(id));
+    if (!c) return;
+    $("reminderForName").innerText = "For: " + (c.clientName || c.name || "Unnamed");
+    $("remDate").value = c.reminder ? c.reminder.date : "";
+    $("remTime").value = c.reminder ? c.reminder.time : "09:00";
+    $("remNote").value = c.reminder ? c.reminder.note : "";
+    openModal("reminderModal");
+}
+function saveReminder(){
+    const c = clients.find(x => String(x.id) === String(activeReminderId));
+    if (!c) return;
+    const date = $("remDate").value;
+    if (!date){ alert("Pick a date for the reminder first."); return; }
+    c.reminder = buildReminder(date, $("remTime").value, ($("remNote").value || "").trim());
+    c.updatedAt = new Date().toISOString();
+    saveClients();
+    closeModal("reminderModal");
+    renderCards();
+    requestNotifyPermission(false);
+}
+function clearReminder(){
+    const c = clients.find(x => String(x.id) === String(activeReminderId));
+    if (!c) return;
+    c.reminder = null;
+    c.updatedAt = new Date().toISOString();
+    saveClients();
+    closeModal("reminderModal");
+    renderCards();
+}
+
+async function requestNotifyPermission(announce){
+    if (typeof Notification === "undefined"){
+        if (announce) alert("This browser can't show notifications, but in-app alarms will still work while this tab is open.");
+        return "unsupported";
+    }
+    let perm = Notification.permission;
+    if (perm === "default"){
+        try { perm = await Notification.requestPermission(); } catch (e) {}
+    }
+    if (announce){
+        if (perm === "granted") alert("Alarm notifications enabled!");
+        else alert("Notifications are blocked — in-app alarms will still show while this tab is open.");
+    }
+    return perm;
+}
+
+function playAlarmSound(){
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new Ctx();
+        const beep = (start) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+            gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + start + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + 0.3);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + start);
+            osc.stop(ctx.currentTime + start + 0.32);
+        };
+        [0, 0.4, 0.8].forEach(beep);
+    } catch (e) {}
+}
+
+function showAlarmBanner(dueClients){
+    const text = dueClients.map(c =>
+        `${c.clientName || c.name}: ${(c.reminder && c.reminder.note) || "Reminder due"}`
+    ).join(" • ");
+    $("alarmBannerText").innerText = text;
+    $("alarmBanner").style.display = "block";
+}
+function dismissAlarmBanner(){
+    $("alarmBanner").style.display = "none";
+}
+
+function checkReminders(){
+    const now = Date.now();
+    const due = [];
+    let changed = false;
+    clients.forEach(c => {
+        if (c.reminder && !c.reminder.fired && reminderTime(c.reminder) <= now){
+            c.reminder.fired = true;
+            changed = true;
+            due.push(c);
+        }
+    });
+    if (due.length){
+        playAlarmSound();
+        if (typeof Notification !== "undefined" && Notification.permission === "granted"){
+            due.forEach(c => {
+                try {
+                    new Notification("Reminder: " + (c.clientName || c.name), {
+                        body: (c.reminder && c.reminder.note) || "Time to follow up",
+                        tag: "tier-reminder-" + c.id
+                    });
+                } catch (e) {}
+            });
+        }
+        showAlarmBanner(due);
+    }
+    if (changed){ saveClients(); renderCards(); }
+}
+setInterval(checkReminders, 20000);
+
+/* ============ Weekly backup reminder ============ */
+(async function backupReminder(){
+    try {
+        const last = parseInt(localStorage.getItem("tier_lastBackup") || "0", 10);
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        if (Date.now() - last < sevenDays) return;
+        if (!clients.length) return;
+
+        const bar = document.createElement("div");
+        bar.className = "backup-banner";
+        bar.innerHTML = `<b>Backup reminder:</b> it's been over a week — tap to download a fresh copy.
+            <button id="reminderDismiss">Later</button>`;
+        document.body.appendChild(bar);
+
+        bar.addEventListener("click", async (e) => {
+            if (e.target.id === "reminderDismiss"){
+                localStorage.setItem("tier_lastBackup", Date.now());
+                bar.remove();
+                return;
+            }
+            await backupToDrive();
+            bar.remove();
+        });
+    } catch (e) {}
+})();
+
+/* ============ Boot ============ */
+(async function init(){
+    clients = loadClients();
+    sortClientsByName();
+    if (idbOK){
+        await loadPhotoData();
+    }
+    renderCards();
+    checkReminders();
+})();
+
+/* Expose for inline handlers */
+window.openAddModal = openAddModal;
+window.editClient = editClient;
+window.deleteClient = deleteClient;
+window.deleteFromModal = deleteFromModal;
+window.saveClient = saveClient;
+window.scanCard = scanCard;
+window.setFilter = setFilter;
+window.renderCards = renderCards;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.toggleSearch = toggleSearch;
+window.goBack = goBack;
+window.openReminderModal = openReminderModal;
+window.saveReminder = saveReminder;
+window.clearReminder = clearReminder;
+window.requestNotifyPermission = requestNotifyPermission;
+window.backupToDrive = backupToDrive;
+window.encryptedBackup = encryptedBackup;
+window.restoreFromDrive = restoreFromDrive;
+window.dismissAlarmBanner = dismissAlarmBanner;
+
+})();
+</script>
 </body>
 </html>
